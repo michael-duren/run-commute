@@ -262,7 +262,7 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
       }
 
       /* ---------- masthead ---------- */
-      .masthead { margin-bottom: 36px; }
+      .masthead { margin-bottom: 20px; }
 
       .eyebrow {
         font-family: 'IBM Plex Mono', monospace;
@@ -280,7 +280,7 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
         line-height: 0.95;
         letter-spacing: -0.02em;
         text-transform: uppercase;
-        margin: 0 0 20px;
+        margin: 0;
       }
 
       .statusbar {
@@ -288,6 +288,7 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
         align-items: center;
         gap: 16px;
         flex-wrap: wrap;
+        margin-bottom: 36px;
       }
 
       .progress {
@@ -427,6 +428,7 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
       .check:checked::before { transform: scale(1); }
 
       .chip {
+        grid-area: chip;
         flex: none;
         width: 34px;
         height: 34px;
@@ -439,7 +441,7 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
         transition: filter 0.15s ease, opacity 0.15s ease;
       }
 
-      .item-body { min-width: 0; display: flex; flex-direction: column; }
+      .item-body { grid-area: body; min-width: 0; display: flex; flex-direction: column; }
 
       .item-name { font-weight: 600; font-size: 0.95rem; }
 
@@ -462,14 +464,14 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
       }
 
       .pocket {
-        margin-left: auto;
+        grid-area: pocket;
+        justify-self: end;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.68rem;
         letter-spacing: 0.04em;
         text-transform: uppercase;
         color: var(--muted);
         text-align: right;
-        flex: none;
       }
 
       .item:has(.check:checked) .item-name {
@@ -501,7 +503,27 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
         text-transform: uppercase;
         letter-spacing: 0.03em;
         margin: 0 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        list-style: none;
+        /* summary is a static heading on desktop; it becomes a toggle on mobile */
+        pointer-events: none;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
       }
+
+      .packmap-title::-webkit-details-marker { display: none; }
+
+      .packmap-title::after {
+        content: '▾';
+        color: var(--orange);
+        transition: transform 0.15s ease;
+        display: none;
+      }
+
+      #packmap-toggle:not([open]) .packmap-title::after { transform: rotate(-90deg); }
 
       .packmap svg { width: 100%; height: auto; display: block; }
 
@@ -580,9 +602,55 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
 
       /* ---------- responsive ---------- */
       @media (max-width: 860px) {
-        .layout { grid-template-columns: 1fr; }
-        .packmap { position: static; order: -1; }
-        .pocket { display: none; }
+        .wrap { padding: 24px 16px 48px; }
+
+        h1 { font-size: clamp(1.8rem, 8.5vw, 2.8rem); }
+
+        .layout { grid-template-columns: 1fr; gap: 20px; }
+
+        /* progress + reset pin to the top while scrolling the list */
+        .statusbar {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          background: var(--fog);
+          margin: 0 -16px 20px;
+          padding: 12px 16px;
+          gap: 12px;
+          border-bottom: 1px solid var(--line);
+        }
+
+        /* bar on its own row; count left, reset right beneath it */
+        .progress { flex-basis: 100%; }
+        .count { font-size: 0.78rem; }
+        .reset { padding: 6px 14px; font-size: 0.72rem; margin-left: auto; }
+
+        /* diagram collapses to a tap-to-expand panel above the list */
+        .packmap { position: static; order: -1; padding: 14px 16px; }
+        .packmap-title { margin: 0; pointer-events: auto; cursor: pointer; }
+        .packmap-title::after { display: block; }
+        #packmap-toggle[open] .packmap-title { margin-bottom: 10px; }
+
+        /* pocket label drops under the item name instead of hiding */
+        .item label {
+          grid-template-columns: auto auto minmax(0, 1fr);
+          grid-template-areas:
+            'check chip body'
+            'check chip pocket';
+          padding: 10px 8px;
+        }
+
+        .pocket {
+          justify-self: start;
+          text-align: left;
+          font-size: 0.62rem;
+          margin-top: 2px;
+        }
+
+        /* bigger touch targets */
+        .check { width: 26px; height: 26px; }
+        .check::before { width: 13px; height: 13px; }
+        .chip { width: 38px; height: 38px; font-size: 21px; }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -656,6 +724,15 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
         li.addEventListener('focusin', on);
         li.addEventListener('focusout', off);
       }
+
+      // pack diagram: always open on desktop, collapsed by default on phones
+      const packmap = document.getElementById('packmap-toggle') as HTMLDetailsElement;
+      const mobile = matchMedia('(max-width: 860px)');
+      const syncPackmap = () => {
+        packmap.open = !mobile.matches;
+      };
+      syncPackmap();
+      mobile.addEventListener('change', syncPackmap);
 
       document.getElementById('reset')!.addEventListener('click', () => {
         boxes.forEach((b) => (b.checked = false));
