@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#ff4d1c"/>
+  <!-- carry handle -->
+  <path d="M216 156 v-16 a40 40 0 0 1 80 0 v16" fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round"/>
+  <!-- pack body -->
+  <rect x="128" y="150" width="256" height="252" rx="52" fill="#ffffff"/>
+  <!-- checkmark -->
+  <path d="M192 278 l46 46 88 -100" fill="none" stroke="#ff4d1c" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

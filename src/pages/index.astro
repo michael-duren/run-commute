@@ -101,7 +101,9 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Run Commute — gear check</title>
     <meta name="theme-color" content="#edf0f2" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎒</text></svg>" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -741,6 +743,12 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
       });
 
       update();
+
+      // offline support — skipped in `astro dev` so the worker never caches
+      // over the dev server's live-reloading responses
+      if ('serviceWorker' in navigator && import.meta.env.PROD) {
+        navigator.serviceWorker.register('/sw.js');
+      }
     </script>
   </body>
 </html>
