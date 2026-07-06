@@ -1,6 +1,9 @@
 ---
 // Run-commute gear check — Janji Revy Pack.
-// Items are ordered by when they're needed, start of the run → desk → run home.
+// `stages` is authored in need-order (start of the run → desk → run home) since
+// that's the natural way to reason about each item. The checklist itself is
+// rendered in pack-order (reverse of need-order): what goes in the bottom of
+// the bag first, working up to what sits on top because you grab it last.
 // zone maps each item to a pocket region on the pack diagram below.
 
 type Item = {
@@ -9,7 +12,6 @@ type Item = {
   name: string;
   zone: 'chest' | 'slash' | 'strap' | 'mesh' | 'sleeve' | 'main' | 'wear';
   note?: string;
-  added?: boolean;
 };
 
 type Stage = { n: string; title: string; note?: string; items: Item[] };
@@ -25,10 +27,10 @@ const stages: Stage[] = [
       { id: 'id-cash', emoji: '💳', name: 'ID + card / cash', zone: 'slash' },
       { id: 'water', emoji: '💧', name: 'Water — 500 ml SoftFlask', zone: 'strap' },
       { id: 'cap', emoji: '🧢', name: 'Cap', zone: 'wear' },
-      { id: 'watch', emoji: '⌚', name: 'GPS watch', zone: 'wear', added: true },
-      { id: 'headphones', emoji: '🎧', name: 'Headphones', zone: 'wear', added: true },
+      { id: 'watch', emoji: '⌚', name: 'GPS watch', zone: 'wear',  },
+      { id: 'headphones', emoji: '🎧', name: 'Headphones', zone: 'wear',  },
       { id: 'balm', emoji: '🧴', name: 'Anti-chafe balm', zone: 'wear', note: 'apply before leaving' },
-      { id: 'sunscreen', emoji: '☀️', name: 'Sunscreen', zone: 'wear', note: 'apply before leaving', added: true },
+      { id: 'sunscreen', emoji: '☀️', name: 'Sunscreen', zone: 'wear', note: 'apply before leaving',  },
     ],
   },
   {
@@ -36,8 +38,6 @@ const stages: Stage[] = [
     title: 'Arrival — shower',
     items: [
       { id: 'deodorant', emoji: '🫧', name: 'Deodorant', zone: 'main' },
-      { id: 'towel', emoji: '🛁', name: 'Small towel', zone: 'main', added: true },
-      { id: 'soap', emoji: '🧼', name: 'Travel soap / shampoo', zone: 'main', added: true },
     ],
   },
   {
@@ -49,7 +49,7 @@ const stages: Stage[] = [
       { id: 'bottoms', emoji: '👖', name: 'Work bottoms', zone: 'main', note: 'wallet in the pocket' },
       { id: 'belt', emoji: '🪢', name: 'Belt', zone: 'main' },
       { id: 'shoes', emoji: '👞', name: 'Work shoes', zone: 'mesh' },
-      { id: 'badge', emoji: '🪪', name: 'Work badge', zone: 'slash', added: true },
+      { id: 'badge', emoji: '🪪', name: 'Work badge', zone: 'slash',  },
     ],
   },
   {
@@ -72,12 +72,12 @@ const stages: Stage[] = [
   {
     n: '∞',
     title: 'Lives in the pack',
-    note: 'check they made it back in',
+    note: 'base layer — already in the main compartment',
     items: [
       { id: 'wet-bag', emoji: '🛍️', name: 'Wet bag for sweaty clothes', zone: 'main' },
       { id: 'microfiber', emoji: '🧽', name: 'Small microfiber cloth', zone: 'main' },
       { id: 'ziplock', emoji: '☔', name: 'Spare zip-lock (phone rain cover)', zone: 'main' },
-      { id: 'plasters', emoji: '🩹', name: 'Blister plasters', zone: 'main', added: true },
+      { id: 'plasters', emoji: '🩹', name: 'Blister plasters', zone: 'main',  },
     ],
   },
 ];
@@ -93,6 +93,15 @@ const zoneLabels: Record<string, string> = {
 };
 
 const total = stages.reduce((sum, s) => sum + s.items.length, 0);
+
+// Pack order = reverse of need order. The permanent stage keeps its ∞ badge
+// (it's already in the pack, not something you pack fresh); the daily stages
+// get renumbered 01, 02, ... in the order you'd actually stack them in.
+let packStep = 0;
+const packingOrder = [...stages].reverse().map((stage) => ({
+  ...stage,
+  displayN: stage.n === '∞' ? '∞' : String((packStep += 1)).padStart(2, '0'),
+}));
 ---
 
 <html lang="en">
@@ -128,10 +137,10 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
 
       <div class="layout">
         <section class="checklist" aria-label="Packing checklist">
-          {stages.map((stage) => (
+          {packingOrder.map((stage) => (
             <section class="stage">
               <header class="stage-head">
-                <span class="stage-n" aria-hidden="true">{stage.n}</span>
+                <span class="stage-n" aria-hidden="true">{stage.displayN}</span>
                 <h2>{stage.title}</h2>
                 {stage.note && <p class="stage-note">{stage.note}</p>}
               </header>
@@ -144,7 +153,6 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
                       <span class="item-body">
                         <span class="item-name">
                           {item.name}
-                          {item.added && <span class="tag-added">added</span>}
                         </span>
                         {item.note && <span class="item-note">{item.note}</span>}
                       </span>
@@ -230,7 +238,7 @@ const total = stages.reduce((sum, s) => sum + s.items.length, 0);
       </div>
 
       <footer class="foot">
-        <p>Packed in the order you'll need it — from the front door to your desk and back.</p>
+        <p>Listed in pack order — bottom of the bag first, grab-first gear on top.</p>
       </footer>
     </main>
 
